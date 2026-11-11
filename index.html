@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV a JSON Express - Convertidor Instantáneo</title>
+    <title>CSV to JSON Express - Convertidor Instantáneo</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -26,165 +26,135 @@
         }
         .container {
             background: var(--card-bg);
-            width: 100%;
-            max-width: 700px;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            width: 100%;
+            max-width: 600px;
         }
-        h1 {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-            color: var(--primary);
-        }
-        p.subtitle {
-            color: #64748b;
-            font-size: 0.95rem;
-            margin-bottom: 24px;
-        }
+        h1 { margin-top: 0; font-size: 24px; color: var(--primary); }
+        .subtitle { color: #64748b; font-size: 14px; margin-bottom: 20px; }
         .upload-area {
             border: 2px dashed var(--border);
             padding: 30px;
             text-align: center;
             border-radius: 8px;
             cursor: pointer;
-            transition: border-color 0.2s;
             margin-bottom: 20px;
+            background: #f8fafc;
         }
-        .upload-area:hover {
-            border-color: var(--primary);
-        }
-        input[type="file"] {
-            display: none;
-        }
+        .upload-area:hover { border-color: var(--primary); }
+        input[type="file"] { display: none; }
         textarea {
             width: 100%;
-            height: 180px;
+            height: 150px;
             padding: 12px;
             border: 1px solid var(--border);
             border-radius: 6px;
             font-family: monospace;
-            font-size: 0.85rem;
-            resize: vertical;
-            background: #f1f5f9;
+            font-size: 13px;
             box-sizing: border-box;
-            margin-bottom: 16px;
+            resize: vertical;
+            margin-bottom: 15px;
         }
-        .btn-group {
-            display: flex;
-            gap: 12px;
-        }
-        button {
+        .btn-group { display: flex; gap: 10px; }
+        button, .btn-stripe {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 10px 16px;
             border-radius: 6px;
-            font-weight: 600;
+            font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
             flex: 1;
         }
-        button:hover {
-            background-color: var(--primary-dark);
-        }
-        button.secondary {
-            background-color: #64748b;
-        }
-        button.secondary:hover {
-            background-color: #475569;
-        }
+        button:hover, .btn-stripe:hover { background-color: var(--primary-dark); }
+        .btn-stripe { background-color: #635bff; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
+        .btn-stripe:hover { background-color: #51499d; }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>CSV to JSON Express</h1>
+        <p class="subtitle">Convierte archivos CSV o datos tabulares en formato JSON estructurado al instante y con total privacidad.</p>
+        
+        <a href="https://buy.stripe.com/28E9AL51N3fgdo18Kgc7u03" target="_blank" class="btn-stripe">🚀 Desbloquear Acceso Ilimitado - 4,99 €</a>
 
-<div class="container">
-    <h1>CSV to JSON Express</h1>
-    <p class="subtitle">Convierte archivos CSV o datos tabulares en formato JSON estructurado al instante y con total privacidad.</p>
-<div style="margin: 20px 0; text-align: center;">
-      <a href="https://buy.stripe.com/28E9AL51N3fgdo18Kgc7u03" target="_blank" style="background-color: #635bff; color: white; padding: 10px 16px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-        🚀 Desbloquear Acceso Ilimitado - 4,99 €
-      </a>
+        <label class="upload-area" id="drop-zone">
+            <span id="file-label">📁 Haz clic aquí o arrastra tu archivo CSV</span>
+            <input type="file" id="csv-file" accept=".csv">
+        </label>
+
+        <textarea id="json-output" placeholder="El código JSON resultante aparecerá aquí..." readonly></textarea>
+
+        <div class="btn-group">
+            <button id="copy-btn" onclick="copyJSON()">Copiar JSON</button>
+            <button id="download-btn" onclick="downloadJSON()">Descargar .json</button>
+        </div>
     </div>
-    <label class="upload-area" id="drop-zone">
-        <span id="file-label">📂 Haz clic aquí o arrastra tu archivo CSV</span>
-        <input type="file" id="csv-file" accept=".csv">
-    </label>
 
-    <textarea id="json-output" placeholder="El código JSON resultante aparecerá aquí..." readonly></textarea>
+    <script>
+        // Lógica del conversor
+        const fileInput = document.getElementById('csv-file');
+        const fileLabel = document.getElementById('file-label');
+        const jsonOutput = document.getElementById('json-output');
+        let rawJsonData = '';
 
-    <div class="btn-group">
-        <button id="copy-btn" onclick="copyJSON()">Copiar JSON</button>
-        <button class="secondary" id="download-btn" onclick="downloadJSON()">Descargar .json</button>
-    </div>
-</div>
-
-<script>
-    const fileInput = document.getElementById('csv-file');
-    const fileLabel = document.getElementById('file-label');
-    const jsonOutput = document.getElementById('json-output');
-    let rawJsonData = "";
-
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        fileLabel.textContent = `📄 ${file.name}`;
-        const reader = new FileReader();
-        
-        reader.onload = function(event) {
-            const text = event.target.result;
-            rawJsonData = convertCSVtoJSON(text);
-            jsonOutput.value = rawJsonData;
-        };
-        reader.readAsText(file);
-    });
-
-    function convertCSVtoJSON(csvText) {
-        const lines = csvText.split(/\r\n|\n/);
-        if (lines.length === 0) return "[]";
-
-        // Detectar separador (coma o punto y coma)
-        const delimiter = lines[0].includes(';') ? ';' : ',';
-        const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^["']|["']$/g, ''));
-        
-        const result = [];
-
-        for (let i = 1; i < lines.length; i++) {
-            if (!lines[i].trim()) continue;
-            const currentLine = lines[i].split(delimiter);
-            const obj = {};
-            
-            for (let j = 0; j < headers.length; j++) {
-                let value = currentLine[j] !== undefined ? currentLine[j].trim() : "";
-                // Limpiar comillas envolventes si existen
-                value = value.replace(/^["']|["']$/g, '');
-                obj[headers[j] || `col_${j+1}`] = value;
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileLabel.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const csvText = event.target.result;
+                        const jsonResult = csvToJson(csvText);
+                        rawJsonData = JSON.stringify(jsonResult, null, 2);
+                        jsonOutput.value = rawJsonData;
+                    } catch (err) {
+                        jsonOutput.value = 'Error al procesar el archivo CSV. Asegúrate de que tiene un formato válido.';
+                    }
+                };
+                reader.readAsText(file);
             }
-            result.push(obj);
+        });
+
+        function csvToJson(csv) {
+            const lines = csv.split(/\r\n|\n/);
+            const result = [];
+            if (lines.length === 0) return result;
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                const currentLine = lines[i].split(',');
+                const obj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    obj[headers[j]] = currentLine[j] ? currentLine[j].trim().replace(/^"|"$/g, '') : '';
+                }
+                result.push(obj);
+            }
+            return result;
         }
 
-        return JSON.stringify(result, null, 2);
-    }
+        function copyJSON() {
+            if (!rawJsonData) return;
+            navigator.clipboard.writeText(rawJsonData);
+            alert('¡JSON copiado al portapapeles!');
+        }
 
-    function copyJSON() {
-        if (!rawJsonData) return alert("No hay datos para copiar.");
-        navigator.clipboard.writeText(rawJsonData);
-        alert("¡JSON copiado al portapapeles!");
-    }
-
-    function downloadJSON() {
-        if (!rawJsonData) return alert("No hay datos para descargar.");
-        const blob = new Blob([rawJsonData], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'data_converted.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-</script>
-
+        function downloadJSON() {
+            if (!rawJsonData) return;
+            const blob = new Blob([rawJsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'datos-convertidos.json';
+            a.click();
+        }
+    </script>
 </body>
 </html>
