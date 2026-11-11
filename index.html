@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV a JSON Express - Convertidor Instantáneo</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 700px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        p.subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+        .upload-area {
+            border: 2px dashed var(--border);
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            margin-bottom: 20px;
+        }
+        .upload-area:hover {
+            border-color: var(--primary);
+        }
+        input[type="file"] {
+            display: none;
+        }
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+            background: #f1f5f9;
+            box-sizing: border-box;
+            margin-bottom: 16px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            flex: 1;
+        }
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+        button.secondary {
+            background-color: #64748b;
+        }
+        button.secondary:hover {
+            background-color: #475569;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>CSV to JSON Express</h1>
+    <p class="subtitle">Convierte archivos CSV o datos tabulares en formato JSON estructurado al instante y con total privacidad.</p>
+
+    <label class="upload-area" id="drop-zone">
+        <span id="file-label">📂 Haz clic aquí o arrastra tu archivo CSV</span>
+        <input type="file" id="csv-file" accept=".csv">
+    </label>
+
+    <textarea id="json-output" placeholder="El código JSON resultante aparecerá aquí..." readonly></textarea>
+
+    <div class="btn-group">
+        <button id="copy-btn" onclick="copyJSON()">Copiar JSON</button>
+        <button class="secondary" id="download-btn" onclick="downloadJSON()">Descargar .json</button>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('csv-file');
+    const fileLabel = document.getElementById('file-label');
+    const jsonOutput = document.getElementById('json-output');
+    let rawJsonData = "";
+
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        fileLabel.textContent = `📄 ${file.name}`;
+        const reader = new FileReader();
+        
+        reader.onload = function(event) {
+            const text = event.target.result;
+            rawJsonData = convertCSVtoJSON(text);
+            jsonOutput.value = rawJsonData;
+        };
+        reader.readAsText(file);
+    });
+
+    function convertCSVtoJSON(csvText) {
+        const lines = csvText.split(/\r\n|\n/);
+        if (lines.length === 0) return "[]";
+
+        // Detectar separador (coma o punto y coma)
+        const delimiter = lines[0].includes(';') ? ';' : ',';
+        const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^["']|["']$/g, ''));
+        
+        const result = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const currentLine = lines[i].split(delimiter);
+            const obj = {};
+            
+            for (let j = 0; j < headers.length; j++) {
+                let value = currentLine[j] !== undefined ? currentLine[j].trim() : "";
+                // Limpiar comillas envolventes si existen
+                value = value.replace(/^["']|["']$/g, '');
+                obj[headers[j] || `col_${j+1}`] = value;
+            }
+            result.push(obj);
+        }
+
+        return JSON.stringify(result, null, 2);
+    }
+
+    function copyJSON() {
+        if (!rawJsonData) return alert("No hay datos para copiar.");
+        navigator.clipboard.writeText(rawJsonData);
+        alert("¡JSON copiado al portapapeles!");
+    }
+
+    function downloadJSON() {
+        if (!rawJsonData) return alert("No hay datos para descargar.");
+        const blob = new Blob([rawJsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'data_converted.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+</script>
+
+</body>
+</html>
