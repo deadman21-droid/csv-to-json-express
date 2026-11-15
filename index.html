@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV to JSON Express - Convertidor Instantáneo</title>
+    <title>CSV to JSON Express</title>
     <style>
         :root {
             --primary: #2563eb;
             --primary-dark: #1d4ed8;
-            --bg: #f8fafc;
+            --bg-color: #f8fafc;
             --card-bg: #ffffff;
-            --text: #1e293b;
-            --border: #cbd5e1;
+            --text-color: #1e293b;
+            --text-light: #64748b;
+            --border-color: #cbd5e1;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 20px;
             display: flex;
@@ -25,40 +26,78 @@
             min-height: 100vh;
         }
         .container {
-            background: var(--card-bg);
+            background-color: var(--card-bg);
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 600px;
+            box-sizing: border-box;
         }
-        h1 { margin-top: 0; font-size: 24px; color: var(--primary); }
-        .subtitle { color: #64748b; font-size: 14px; margin-bottom: 20px; }
+        h1 {
+            font-size: 24px;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .btn-stripe {
+            background-color: #635bff;
+            color: white;
+            display: block;
+            margin-bottom: 20px;
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .btn-stripe:hover {
+            background-color: #51499d;
+        }
         .upload-area {
-            border: 2px dashed var(--border);
+            border: 2px dashed var(--border-color);
             padding: 30px;
             text-align: center;
             border-radius: 8px;
             cursor: pointer;
+            display: block;
             margin-bottom: 20px;
-            background: #f8fafc;
+            background-color: #fff;
         }
-        .upload-area:hover { border-color: var(--primary); }
-        input[type="file"] { display: none; }
-        textarea {
+        .upload-area:hover {
+            border-color: var(--primary);
+        }
+        #csv-file {
+            display: none;
+        }
+        #json-output {
             width: 100%;
             height: 150px;
             padding: 12px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             font-family: monospace;
             font-size: 13px;
-            box-sizing: border-box;
             resize: vertical;
-            margin-bottom: 15px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            background-color: #f1f5f9;
         }
-        .btn-group { display: flex; gap: 10px; }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
         button, .btn-stripe {
+            transition: background-color 0.2s;
+        }
+        button {
             background-color: var(--primary);
             color: white;
             border: none;
@@ -71,9 +110,9 @@
             text-align: center;
             flex: 1;
         }
-        button:hover, .btn-stripe:hover { background-color: var(--primary-dark); }
-        .btn-stripe { background-color: #635bff; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
-        .btn-stripe:hover { background-color: #51499d; }
+        button:hover {
+            background-color: var(--primary-dark);
+        }
     </style>
 </head>
 <body>
@@ -81,16 +120,15 @@
         <h1>CSV to JSON Express</h1>
         <p class="subtitle">Convierte archivos CSV o datos tabulares en formato JSON estructurado al instante y con total privacidad.</p>
         
-        <div style="margin-bottom: 20px;">
-    <a href="https://buy.stripe.com/28E9AL51N3fgdo18Kgc7u03" target="_blank" class="btn-stripe">🚀 Desbloquear Acceso Ilimitado - 4,99 €</a>
-</div>
+        <a href="https://buy.stripe.com/28E9AL51N3fgdo18Kgc7u03" target="_blank" class="btn-stripe">🚀 Desbloquear Acceso Ilimitado - 4,99 €</a>
 
         <label class="upload-area" id="drop-zone">
             <span id="file-label">📁 Haz clic aquí o arrastra tu archivo CSV</span>
             <input type="file" id="csv-file" accept=".csv">
         </label>
 
-   
+        <textarea id="json-output" placeholder="El código JSON resultante aparecerá aquí..." readonly></textarea>
+
         <div class="btn-group">
             <button id="copy-btn" onclick="copyJSON()">Copiar JSON</button>
             <button id="download-btn" onclick="downloadJSON()">Descargar .json</button>
@@ -101,21 +139,19 @@
         const fileInput = document.getElementById('csv-file');
         const fileLabel = document.getElementById('file-label');
         const jsonOutput = document.getElementById('json-output');
-        let rawJsonData = '';
 
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
-                fileLabel.textContent = file.name;
+                fileLabel.textContent = '📄 ' + file.name;
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     try {
-                        const csvText = event.target.result;
-                        const jsonResult = csvToJson(csvText);
-                        rawJsonData = JSON.stringify(jsonResult, null, 2);
-                        jsonOutput.value = rawJsonData;
+                        const text = event.target.result;
+                        const jsonResult = csvToJson(text);
+                        jsonOutput.value = JSON.stringify(jsonResult, null, 2);
                     } catch (err) {
-                        jsonOutput.value = 'Error al procesar el archivo CSV. Asegúrate de que tiene un formato válido.';
+                        jsonOutput.value = 'Error al procesar el archivo CSV.';
                     }
                 };
                 reader.readAsText(file);
@@ -126,14 +162,19 @@
             const lines = csv.split(/\r\n|\n/);
             const result = [];
             if (lines.length === 0) return result;
-            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
             
+            const firstLine = lines[0];
+            const separator = firstLine.includes(';') ? ';' : ',';
+            const headers = firstLine.split(separator).map(h => h.trim().replace(/^["'](.*)["']$/, '$1'));
+
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
-                const currentLine = lines[i].split(',');
+                const currentLine = lines[i].split(separator);
                 const obj = {};
                 for (let j = 0; j < headers.length; j++) {
-                    obj[headers[j]] = currentLine[j] ? currentLine[j].trim().replace(/^"|"$/g, '') : '';
+                    let value = currentLine[j] !== undefined ? currentLine[j].trim() : '';
+                    value = value.replace(/^["'](.*)["']$/, '$1');
+                    obj[headers[j]] = value;
                 }
                 result.push(obj);
             }
@@ -141,19 +182,26 @@
         }
 
         function copyJSON() {
-            if (!rawJsonData) return;
-            navigator.clipboard.writeText(rawJsonData);
-            alert('¡JSON copiado al portapapeles!');
+            if (!jsonOutput.value) return;
+            navigator.clipboard.writeText(jsonOutput.value).then(() => {
+                const btn = document.getElementById('copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '¡Copiado!';
+                setTimeout(() => btn.textContent = originalText, 2000);
+            });
         }
 
         function downloadJSON() {
-            if (!rawJsonData) return;
-            const blob = new Blob([rawJsonData], { type: 'application/json' });
+            if (!jsonOutput.value) return;
+            const blob = new Blob([jsonOutput.value], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'datos-convertidos.json';
+            a.download = 'data.json';
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
     </script>
 </body>
