@@ -1,16 +1,17 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CSV to JSON Express</title>
+    
     <!-- SEO Básico e Indexación -->
     <meta name="description" content="Convert CSV files or tabular data into structured JSON instantly and with total privacy. Fast, secure, and client-side online CSV to JSON converter.">
     <meta name="keywords" content="csv to json, convert csv to json, csv converter online, tabular data to json, csv parser">
     <link rel="canonical" href="https://csv-to-json-express.vercel.app/">
     <meta name="robots" content="index, follow">
 
-    <!-- Open Graph / Redes Sociales y Directorios (Facebook, LinkedIn, BetaList, Discord) -->
+    <!-- Open Graph / Redes Sociales y Directorios -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://csv-to-json-express.vercel.app/">
     <meta property="og:title" content="CSV to JSON Express - Instant & Private CSV Converter">
@@ -23,6 +24,7 @@
     <meta name="twitter:title" content="CSV to JSON Express - Instant & Private CSV Converter">
     <meta name="twitter:description" content="Convert CSV files into structured JSON instantly in your browser.">
     <meta name="twitter:image" content="https://csv-to-json-express.vercel.app/og-image.png">
+
     <style>
         :root {
             --primary: #2563eb;
@@ -137,20 +139,20 @@
 <body>
     <div class="container">
         <h1>CSV to JSON Express</h1>
-        <p class="subtitle">Convierte archivos CSV o datos tabulares en formato JSON estructurado al instante y con total privacidad.</p>
+        <p class="subtitle">Convert CSV files or tabular data into structured JSON instantly with 100% client-side privacy.</p>
         
-        <a href="https://buy.stripe.com/28E9AL51N3fgdo18Kgc7u03" target="_blank" class="btn-stripe">🚀 Desbloquear Acceso Ilimitado - 4,99 €</a>
+        <a href="https://buy.stripe.com/28E9AL51N3fgdo18Kgc7u03" target="_blank" class="btn-stripe">🚀 Unlock Unlimited Access - €4.99</a>
 
         <label class="upload-area" id="drop-zone">
-            <span id="file-label">📁 Haz clic aquí o arrastra tu archivo CSV</span>
+            <span id="file-label">📁 Click here or drag and drop your CSV file</span>
             <input type="file" id="csv-file" accept=".csv">
         </label>
 
-        <textarea id="json-output" placeholder="El código JSON resultante aparecerá aquí..." readonly></textarea>
+        <textarea id="json-output" placeholder="Your formatted JSON output will appear here..." readonly></textarea>
 
         <div class="btn-group">
-            <button id="copy-btn" onclick="copyJSON()">Copiar JSON</button>
-            <button id="download-btn" onclick="downloadJSON()">Descargar .json</button>
+            <button id="copy-btn" onclick="copyJSON()">Copy JSON</button>
+            <button id="download-btn" onclick="downloadJSON()">Download .json</button>
         </div>
     </div>
 
@@ -170,7 +172,7 @@
                         const jsonResult = csvToJson(text);
                         jsonOutput.value = JSON.stringify(jsonResult, null, 2);
                     } catch (err) {
-                        jsonOutput.value = 'Error al procesar el archivo CSV.';
+                        jsonOutput.value = 'Error processing the CSV file.';
                     }
                 };
                 reader.readAsText(file);
@@ -205,7 +207,7 @@
             navigator.clipboard.writeText(jsonOutput.value).then(() => {
                 const btn = document.getElementById('copy-btn');
                 const originalText = btn.textContent;
-                btn.textContent = '¡Copiado!';
+                btn.textContent = 'Copied!';
                 setTimeout(() => btn.textContent = originalText, 2000);
             });
         }
